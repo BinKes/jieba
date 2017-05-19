@@ -40,8 +40,8 @@ re_eng = re.compile('[a-zA-Z0-9]', re.U)
 
 # \u4E00-\u9FD5a-zA-Z0-9+#&\._ : All non-space characters. Will be handled with re_han
 # \r\n|\s : whitespace characters. Will not be handled.
-re_han_default = re.compile("([\u4E00-\u9FD5a-zA-Z0-9+#&\._]+)", re.U)
-re_skip_default = re.compile("(\r\n|\s)", re.U)
+re_han_default = re.compile("([\u4E00-\u9FD5a-zA-Z0-9+#&\._\-\(\)\u0370-\u03ff\/\,]+)", re.U)
+re_skip_default = re.compile("(\r\n)", re.U)
 re_han_cut_all = re.compile("([\u4E00-\u9FD5]+)", re.U)
 re_skip_cut_all = re.compile("[^a-zA-Z0-9+#\n]", re.U)
 
@@ -51,7 +51,7 @@ def setLogLevel(log_level):
 
 class Tokenizer(object):
 
-    def __init__(self, dictionary=DEFAULT_DICT):
+    def __init__(self, dictionary=DEFAULT_DICT_NAME):
         self.lock = threading.RLock()
         if dictionary == DEFAULT_DICT:
             self.dictionary = dictionary
@@ -68,6 +68,9 @@ class Tokenizer(object):
         return '<Tokenizer dictionary=%r>' % self.dictionary
 
     def gen_pfdict(self, f):
+        '''
+        #lfreq: {word:frequency} dict; ltotal: sum of frequency
+        '''
         lfreq = {}
         ltotal = 0
         f_name = resolve_filename(f)
@@ -168,14 +171,20 @@ class Tokenizer(object):
             self.initialize()
 
     def calc(self, sentence, DAG, route):
+        '''。。。。。。'''
         N = len(sentence)
         route[N] = (0, 0)
+        # log() 方法返回x的自然对数
         logtotal = log(self.total)
         for idx in xrange(N - 1, -1, -1):
             route[idx] = max((log(self.FREQ.get(sentence[idx:x + 1]) or 1) -
                               logtotal + route[x + 1][0], x) for x in DAG[idx])
 
     def get_DAG(self, sentence):
+        '''
+        DAG: dict
+        DAG[k] = [idxs], 使得 sentence[k: idxs] 都在词语库的 {词语：频率} 字典中。
+        '''
         self.check_initialized()
         DAG = {}
         N = len(sentence)
@@ -248,9 +257,10 @@ class Tokenizer(object):
                         buf = ''
                     else:
                         if not self.FREQ.get(buf):
-                            recognized = finalseg.cut(buf)
+                            yield ''
+                            '''recognized = finalseg.cut(buf)
                             for t in recognized:
-                                yield t
+                                yield t'''
                         else:
                             for elem in buf:
                                 yield elem
@@ -301,7 +311,8 @@ class Tokenizer(object):
                 for word in cut_block(blk):
                     yield word
             else:
-                tmp = re_skip.split(blk)
+                yield ''
+                '''tmp = re_skip.split(blk)
                 for x in tmp:
                     if re_skip.match(x):
                         yield x
@@ -309,7 +320,7 @@ class Tokenizer(object):
                         for xx in x:
                             yield xx
                     else:
-                        yield x
+                        yield x'''
 
     def cut_for_search(self, sentence, HMM=True):
         """
