@@ -171,7 +171,10 @@ class Tokenizer(object):
             self.initialize()
 
     def calc(self, sentence, DAG, route):
-        '''。。。。。。'''
+        '''
+        1. 对于 sentence 中第idx个字w，以w开头往后面搜索所有可以组成词语(存在于字典中)的词；
+        2. 
+        '''
         N = len(sentence)
         route[N] = (0, 0)
         # log() 方法返回x的自然对数
@@ -184,6 +187,16 @@ class Tokenizer(object):
         '''
         DAG: dict
         DAG[k] = [idxs], 使得 sentence[k: idxs] 都在词语库的 {词语：频率} 字典中。
+        ------------------------------------
+        example:
+            sentence = '12345' # 词库中有 1，12，123，12345，234，34，4
+            DAG = {
+                1: [1, 2，3,5],
+                2: [4],
+                3: [4],
+                4: [4],
+                5: [5]
+            }
         '''
         self.check_initialized()
         DAG = {}
@@ -258,9 +271,9 @@ class Tokenizer(object):
                     else:
                         if not self.FREQ.get(buf):
                             yield ''
-                            '''recognized = finalseg.cut(buf)
+                            recognized = finalseg.cut(buf)
                             for t in recognized:
-                                yield t'''
+                                yield t
                         else:
                             for elem in buf:
                                 yield elem
@@ -312,7 +325,7 @@ class Tokenizer(object):
                     yield word
             else:
                 yield ''
-                '''tmp = re_skip.split(blk)
+                tmp = re_skip.split(blk)
                 for x in tmp:
                     if re_skip.match(x):
                         yield x
@@ -320,7 +333,7 @@ class Tokenizer(object):
                         for xx in x:
                             yield xx
                     else:
-                        yield x'''
+                        yield x
 
     def cut_for_search(self, sentence, HMM=True):
         """
