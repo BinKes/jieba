@@ -172,8 +172,23 @@ class Tokenizer(object):
 
     def calc(self, sentence, DAG, route):
         '''
-        1. 对于 sentence 中第idx个字w，以w开头往后面搜索所有可以组成词语(存在于字典中)的词；
-        2. 
+        1. 对于 sentence 中第idx个字w，以w开头往后面搜索所有可以组成词语(存在于字典中)的词-->DAG[idx]=[x1, x2, ...]；
+          1.1 sentence[idx:x + 1] 表示 DAG[idx] 中的一个词
+        2. 在以 idx 开头的字串中查找出现概率最高的字串的路径，得到 route. 此处取概率的对数，为负值
+          2.1 self.FREQ 词频字典
+          2.2 (self.FREQ.get(sentence[idx:x + 1]) or 1) --> 词频为 None 则取 1
+          2.3 route：路由. 在DAG[idx]集合中，找到一条路径:idx-->x_idx, 使得其出现概率最大，route[idx] = (当前字串的概率, 当前字串最后一个字在sentence中的x_idx)。初始状态取 route[N] = (0, 0)
+          2.4 max(
+                (log(
+                    self.FREQ.get(sentence[idx:x + 1]) # 取词频
+                    or 1
+                )       # 对词频取对数
+                - logtotal + route[x + 1][0], x))
+              --> （当前词频对数 - 总词频对数 + route[x + 1][0] ）与 x 的最大值
+                    相当于 log(当前词频/总词频*上一个字串的概率)
+        3. 总体思想 bigram model： p(wn, wn-1) = p(wn-1|wn) * p(wn) 
+        当前词成词的概率与其后面出现的词成词的概率有关。
+        当前词成词的概率 = （下一个词成词的条件下）当前词出现概率 * 下一个词成词的概率
         '''
         N = len(sentence)
         route[N] = (0, 0)
@@ -229,6 +244,10 @@ class Tokenizer(object):
                         old_j = j
 
     def __cut_DAG_NO_HMM(self, sentence):
+        '''
+        1. 遇到 字母、数字则拼接
+        2. 否则返回当前字符串
+        '''
         DAG = self.get_DAG(sentence)
         route = {}
         self.calc(sentence, DAG, route)

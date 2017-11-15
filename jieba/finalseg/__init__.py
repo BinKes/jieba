@@ -35,6 +35,9 @@ else:
 
 
 def viterbi(obs, states, start_p, trans_p, emit_p):
+    '''
+    V[{'B': p('B')*p(obs[y]|'B'), ...}]
+    '''
     V = [{}]  # tabular
     path = {}
     for y in states:  # init
@@ -79,8 +82,12 @@ re_skip = re.compile("(\d+\.\d+|[a-zA-Z0-9]+)")
 
 
 def cut(sentence):
+    '''
+    若是汉字串，则用 HMM 分词；
+    否则返回其他字符
+    '''
     sentence = strdecode(sentence)
-    blocks = re_han.split(sentence)
+    blocks = re_han.split(sentence) # 按汉字串、非汉字串拆分
     for blk in blocks:
         if re_han.match(blk):
             for word in __cut(blk):
