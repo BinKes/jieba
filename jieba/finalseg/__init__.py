@@ -12,6 +12,7 @@ PROB_TRANS_P = "prob_trans.p"
 PROB_EMIT_P = "prob_emit.p"
 
 
+# PrevStatus[y]是当前时刻的状态所对应上一时刻可能的状态。提前建立一个当前时刻的状态到上一时刻的状态的映射表，记录每个状态在前一时刻的可能状态，降低计算量
 PrevStatus = {
     'B': 'ES',
     'M': 'MB',
@@ -57,6 +58,7 @@ def viterbi(obs, states, start_p, trans_p, emit_p):
             (prob, state) = max(
                 [(V[t - 1][y0] + trans_p[y0].get(y, MIN_FLOAT) + em_p, y0) for y0 in PrevStatus[y]])
             V[t][y] = prob
+            # 上一时刻最优的状态路径 + 这一时刻的状态
             newpath[y] = path[state] + [y]
         path = newpath
 
