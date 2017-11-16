@@ -36,7 +36,13 @@ else:
 
 def viterbi(obs, states, start_p, trans_p, emit_p):
     '''
-    V[{'B': p('B')*p(obs[y]|'B'), ...}]
+    返回生成obs的最大概率及其对应的最佳路径（隐藏状态序列）
+    -----------------------------------------------
+    1. V
+        V[{'B': p('B')*p(obs[y]|'B'), ...}]
+        V[0]: 每个状态出现的概率*该状态发射obs第一个字的概率
+    2. (V[t - 1][y0] + trans_p[y0].get(y, MIN_FLOAT) + em_p) ==> 用s表示状态，则 s(t-1)-->s(t)-->obs(t)的概率。
+    3. 寻找最佳路径，记录中间数据(V[t][y])：寻找前一个状态st-1到当前状态st并生成obs_t的最佳路径使得概率最大，记录此概率和路径V[t][y] = prob， newpath[y] = path[st-1] + [st]
     '''
     V = [{}]  # tabular
     path = {}
@@ -54,7 +60,7 @@ def viterbi(obs, states, start_p, trans_p, emit_p):
             newpath[y] = path[state] + [y]
         path = newpath
 
-    (prob, state) = max((V[len(obs) - 1][y], y) for y in 'ES')
+    (prob, state) = max((V[len(obs) - 1][y], y) for y in 'ES') # 得到最大概率和最后一个字的隐藏状态
 
     return (prob, path[state])
 
