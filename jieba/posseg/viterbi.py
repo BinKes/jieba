@@ -12,6 +12,17 @@ def get_top_states(t_state_v, K=4):
 
 
 def viterbi(obs, states, start_p, trans_p, emit_p):
+    '''
+    mem_path = [
+        {(state t, tag t): (state t-1, tag t-1), ......},
+        {(观察值可能的状态(s), 词性tag): },
+        ......
+    ]
+    每一个{}元素表示一个obs(观察值)的当前状态、标签对应的前一个观察值的状态、标签
+
+    V[{(B,tag): p('B,tag')*p(obs[y]|'B,tag'), ...}]
+        V[0]: 每个状态出现的概率*该状态发射obs第一个字的概率
+    '''
     V = [{}]  # tabular
     mem_path = [{}]
     all_states = trans_p.keys()
@@ -22,11 +33,14 @@ def viterbi(obs, states, start_p, trans_p, emit_p):
         V.append({})
         mem_path.append({})
         #prev_states = get_top_states(V[t-1])
+        # 所有可能的t-1时刻状态集合 {(state, tag)}
         prev_states = [
             x for x in mem_path[t - 1].keys() if len(trans_p[x]) > 0]
-
+        
+        # 所有可能的t-1的下一个时刻状态集合 {(state, tag)}
         prev_states_expect_next = set(
             (y for x in prev_states for y in trans_p[x].keys()))
+        # & 取交集
         obs_states = set(
             states.get(obs[t], all_states)) & prev_states_expect_next
 
